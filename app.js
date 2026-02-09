@@ -35,7 +35,17 @@ const validateTransaction = (req, res, next) => {
         next();
     }
 }
-app.use(cors({ origin: true }));
+const corsOptions = {
+    origin: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type"],
+  };
+  
+  app.use(cors(corsOptions));
+  
+  // ✅ safe preflight handler (works even when "*" crashes)
+  app.options(/.*/, cors(corsOptions));
+  
 app.use(express.json());
 
 app.get("/api/health", (req, res) => {
