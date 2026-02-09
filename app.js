@@ -35,7 +35,7 @@ const validateTransaction = (req, res, next) => {
         next();
     }
 }
-app.use(cors({ origin: "http://localhost:5173" }));
+app.use(cors({ origin: true }));
 app.use(express.json());
 
 app.get("/api/health", (req, res) => {
@@ -44,7 +44,7 @@ app.get("/api/health", (req, res) => {
 
 app.post('/transactions',validateTransaction, catchAsync(async (req, res)=> {
     const transaction = await Transaction.create(req.body);
-    console.log('Home Page')
+    return res.status(201).json(transaction);
 }))
 
 app.get('/', (req, res) => {
@@ -67,7 +67,7 @@ app.delete('/transactions/:id', catchAsync(async(req, res) => {
 }))
 
 app.put('/transactions/:id' , validateTransaction, catchAsync(async(req, res) => {
-    const transaction = await Transaction.findByIdandUpdate(req.params.id, req.body)
+    const transaction = await Transaction.findByIdAndUpdate(req.params.id, req.body)
     res.json(transaction)
 }))
 
