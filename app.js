@@ -4,13 +4,26 @@ const Transaction = require('./models/Transaction')
 const catchAsync = require('./utilities/catchAsync')
 const expressError = require('./utilities/expressError')
 const cors = require('cors')
+require("dotenv").config();
 const {transactionSchema} = require('./schema.js')
 const app = express()
 const port = process.env.PORT || 3000
 
-mongoose.connect('mongodb://127.0.0.1:27017/expense-tracker')
+/*mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log('Database Conneceted'))
-.catch(() => console.log('Error'))
+.catch((error) => console.log('Error', error))*/
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log("Database connected");
+    app.listen(port, () => {
+      console.log("Listening on port", port);
+    });
+  })
+  .catch((error) => {
+    console.error("Mongo connection error:", error);
+    process.exit(1);
+  });
 
 const validateTransaction = (req, res, next) => {
     const {error} = transactionSchema.validate(req.body, { abortEarly: false});
@@ -24,6 +37,10 @@ const validateTransaction = (req, res, next) => {
 }
 app.use(cors({ origin: "http://localhost:5173" }));
 app.use(express.json());
+
+app.get("/api/health", (req, res) => {
+    res.json({ ok: true });
+  });
 
 app.post('/transactions',validateTransaction, catchAsync(async (req, res)=> {
     const transaction = await Transaction.create(req.body);
@@ -50,10 +67,10 @@ app.delete('/transactions/:id', catchAsync(async(req, res) => {
 }))
 
 app.put('/transactions/:id' , validateTransaction, catchAsync(async(req, res) => {
-    const transaction = await Transaction.findbyIdandUpdate(req.params.id, req.body)
+    const transaction = await Transaction.findByIdandUpdate(req.params.id, req.body)
     res.json(transaction)
 }))
 
-app.listen(port, () => {
+/*app.listen(port, () => {
     console.log('Listening on port 3000')
-})
+})*/
