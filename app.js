@@ -81,6 +81,14 @@ app.put('/transactions/:id' , validateTransaction, catchAsync(async(req, res) =>
     res.json(transaction)
 }))
 
+app.use((err, req, res, next) => {
+    const status = err.statusCode || 500;
+    res.status(status).json({
+      message: err.message || "Internal Server Error",
+    });
+  });
+  
+
 /*app.listen(port, () => {
     console.log('Listening on port 3000')
 })*/
