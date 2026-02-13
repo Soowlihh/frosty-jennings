@@ -38,7 +38,7 @@ app.options(/.*/, cors(corsOptions));
   
 app.use(express.json());
 
-app.use('/transaction', transactions);
+app.use('/transactions', transactions);
 
 
 app.get("/api/health", (req, res) => {
