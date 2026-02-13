@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const router = express.Router();
 const Transaction = require('../models/Transaction');
 const catchAsync = require('../utilities/catchAsync');
@@ -23,30 +24,33 @@ const validateObjectId = (req, res, next) => {
       next();
     };
 
-router.post('/transactions',validateTransaction, catchAsync(async (req, res)=> {
+
+    router.get("/ping", (req, res) => res.json({ ok: true }));
+
+router.post('/',validateTransaction, catchAsync(async (req, res)=> {
     const transaction = await Transaction.create(req.body);
     return res.status(201).json(transaction);
 }))
 
-router.get('/transactions', catchAsync(async(req,res) => {
+router.get('/', catchAsync(async(req,res) => {
     const transaction = await Transaction.find({})
     res.json(transaction)
 }))
 
-router.get('/transactions/:id', validateObjectId, catchAsync(async(req, res) => {
+router.get('/:id', validateObjectId, catchAsync(async(req, res) => {
     const transaction = await Transaction.findById(req.params.id);
     if (!transaction) throw new expressError("Transaction not found", 404);
     res.json(transaction)
 }))
 
-router.delete('/transactions/:id', catchAsync(async(req, res) => {
-    const transaction = await Transaction.findByIdAndDelete(req.params.id)
+router.delete('/:id', validateObjectId, catchAsync(async(req, res) => {
+    const transaction = await Transaction.findByIdAndDelete(req.params.id);
     res.json({message : 'Deleted'})
 }))
 
-router.put('/transactions/:id' , validateTransaction, catchAsync(async(req, res) => {
+router.put('/:id/edit' , validateObjectId, validateTransaction, catchAsync(async(req, res) => {
     const transaction = await Transaction.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true })
     res.json(transaction)
 }))
 
-module.exports = router();
+module.exports = router;
