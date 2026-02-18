@@ -5,8 +5,8 @@ const Schema = mongoose.Schema
 const TransactionSchema = new Schema({
     type: { type : String, required : true} ,
     amount: { type : Number, required : true} ,
-    Statements: {type : String, required : true},
-    Date: { type : Date, required : true },
+    statements: {type : String, required : true},
+    date: { type : Date, required : true },
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
