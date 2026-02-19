@@ -43,9 +43,6 @@ app.use(session({
   }));
   
 
-<<<<<<< HEAD
-app.use('/transactions', transactions);
-=======
 app.use(passport.initialize());
 app.use(passport.session());
 passport.use(new LocalStrategy(User.authenticate()));
@@ -56,7 +53,6 @@ passport.deserializeUser(User.deserializeUser());
 
 app.use('/transactions', transactions);
 app.use('/', userRoutes);
->>>>>>> 62ce17c (Added Authentication)
 
 
 app.get("/api/health", (req, res) => {
