@@ -1,5 +1,5 @@
 // middleware.js
-
+const Transaction = require('./models/Transaction');
 // For EJS pages (redirects)
 module.exports.isLoggedInPage = (req, res, next) => {
     if (!req.isAuthenticated || !req.isAuthenticated()) {
@@ -16,3 +16,9 @@ module.exports.isLoggedInPage = (req, res, next) => {
     next();
   };
   
+  module.exports.isOwner = async(req,res,next) => {
+    const transactions = await Transaction.findById(id);
+    if(!transactions.owner || !transactions.owner.equals(req.user._id)){
+      return res.redirect('/register');
+    }
+  }

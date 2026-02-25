@@ -5,7 +5,7 @@ const Transaction = require('../models/Transaction');
 const catchAsync = require('../utilities/catchAsync');
 const expressError = require('../utilities/expressError');
 const {transactionSchema} = require('../schema.js');
-const {isLoggedInAPI} = require("../middleware");
+const {isLoggedInAPI,isOwner} = require("../middleware");
 
 
 const validateTransaction = (req, res, next) => {
@@ -31,30 +31,29 @@ router.get("/ping", (req, res) => res.json({ ok: true }));
 
 router.post('/', isLoggedInAPI, validateTransaction, catchAsync(async (req, res)=> {
     const data = req.body.transaction ?? req.body; 
-    const transaction = await Transaction.create({...data, user: req.user._id});
+    const transaction = await Transaction.create({...data, owner: req.user._id});
     return res.status(201).json(transaction);
 }))
 
 router.get('/', isLoggedInAPI, catchAsync(async(req,res) => {
-    const transaction = await Transaction.find({user: req.user._id})
+    const transaction = await Transaction.find({owner: req.user._id})
     res.json(transaction)
 }))
 
-router.get('/:id', isLoggedInAPI, validateObjectId, catchAsync(async(req, res) => {
-    const transaction = await Transaction.findOne({_id : req.params.id , user: req.user._id});
+router.get('/:id', isLoggedInAPI, validateObjectId,isOwner, catchAsync(async(req, res) => {
+    const transaction = await Transaction.findOne({_id : req.params.id , owner: req.user._id});
     if (!transaction) throw new expressError("Transaction not found", 404);
     res.json(transaction)
 }))
 
-router.delete('/:id', isLoggedInAPI, validateObjectId, catchAsync(async(req, res) => {
-    const data = req.body.transaction ?? req.body;
-    const transaction = await Transaction.findOneAndDelete({_id : req.params.id, data, user: req.user._id});
+router.delete('/:id', isLoggedInAPI, validateObjectId,isOwner, catchAsync(async(req, res) => {
+    const transaction = await Transaction.findOneAndDelete({_id : req.params.id, owner: req.user._id});
     res.json({message : 'Deleted'})
 }))
 
-router.put('/:id/edit' , isLoggedInAPI, validateObjectId, validateTransaction, catchAsync(async(req, res) => {
+router.put('/:id/edit' , isLoggedInAPI, validateObjectId, isOwner,validateTransaction, catchAsync(async(req, res) => {
     const data = req.body.transaction ?? req.body;
-    const transaction = await Transaction.findOneAndUpdate({_id: req.params.id, user: req.user._id, new: true, runValidators: true })
+    const transaction = await Transaction.findOneAndUpdate({_id: req.params.id, owner: req.user._id, data, new: true, runValidators: true })
     res.json(transaction)
 }))
 

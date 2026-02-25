@@ -7,12 +7,10 @@ const TransactionSchema = new Schema({
     amount: { type : Number, required : true} ,
     statements: {type : String, required : true},
     date: { type : Date, required : true },
-    userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        index: true,
+    owner: {
+        type: Schema.Types.ObjectId,
+        ref: "User"
       }
-      
 });
 
 module.exports = mongoose.model('Transaction', TransactionSchema)
