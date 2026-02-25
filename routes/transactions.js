@@ -6,6 +6,8 @@ const catchAsync = require('../utilities/catchAsync');
 const expressError = require('../utilities/expressError');
 const {transactionSchema} = require('../schema.js');
 const {isLoggedInAPI,isOwner} = require("../middleware");
+const { transactionLimiter} = require('../rateLimiter');
+
 
 
 const validateTransaction = (req, res, next) => {
@@ -28,6 +30,7 @@ const validateObjectId = (req, res, next) => {
 
 
 router.get("/ping", (req, res) => res.json({ ok: true }));
+router.use(transactionLimiter);
 
 router.post('/', isLoggedInAPI, validateTransaction, catchAsync(async (req, res)=> {
     const data = req.body.transaction ?? req.body; 

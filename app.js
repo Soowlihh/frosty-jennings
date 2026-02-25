@@ -11,6 +11,8 @@ const app = express();
 const port = process.env.PORT || 3000;
 const User = require('./models/user');
 const userRoutes = require('./routes/user');
+const { loginLimiter, registerLimiter, transactionLimiter } = require('./rateLimiter');
+
 
 mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log('Database Conneceted'))
@@ -22,6 +24,7 @@ const corsOptions = {
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type"],
   };
+app.set("trust proxy", 1);
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 app.use(express.urlencoded({ extended: true }));
