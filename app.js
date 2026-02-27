@@ -1,12 +1,11 @@
+require("dotenv").config();
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
 const transactions = require('./routes/transactions');
-const session = require('express-session');
-const passport = require('passport');
-const LocalStrategy = require('passport-local');
+const cookieParser = require('cookie-parser')
+const helmet = require('helmet')
 const cors = require('cors');
-require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 3000;
 const User = require('./models/user');
@@ -19,14 +18,13 @@ mongoose.connect(process.env.MONGO_URI)
 .catch((error) => console.log('Error', error))
 
 const corsOptions = {
-  origin: "http://localhost:5173",
+  origin: process.env.CLIENT_URL ||"http://localhost:5173",
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type"],
+  allowedHeaders: ["Content-Type", " Authorization"],
   };
 app.set("trust proxy", 1);
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
+app.use(helmet());
 app.use(express.urlencoded({ extended: true }));
   
 app.use(cors(corsOptions));
@@ -34,25 +32,7 @@ app.use(cors(corsOptions));
   // ✅ safe preflight handler (works even when "*" crashes)
 app.options(/.*/, cors(corsOptions));
 app.use(express.json());
-app.use(session({
-    secret: process.env.SESSION_SECRET || "devsecret",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: false, // true only in HTTPS production
-    }
-  }));
   
-
-app.use(passport.initialize());
-app.use(passport.session());
-passport.use(new LocalStrategy(User.authenticate()));
-
-passport.serializeUser(User.serializeUser());
-passport.deserializeUser(User.deserializeUser());
-
 
 app.use('/transactions', transactions);
 app.use('/', userRoutes);
