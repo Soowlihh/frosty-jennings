@@ -25,7 +25,9 @@ router.post('/register', registerLimiter, catchAsync(async(req,res,next) => {
     delete req.session.returnTo;
     res.redirect(redirectUrl);
 });*/
-
+router.get('/login', (req, res) => {
+    res.send('Login page');
+  });
 router.post('/login', loginLimiter, catchAsync(async(req,res)=> {
     const {username, password } = req.body;
     const user = await User.findByUsername(username);
