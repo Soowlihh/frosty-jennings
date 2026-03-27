@@ -32,7 +32,7 @@ app.use(cors(corsOptions));
   // ✅ safe preflight handler (works even when "*" crashes)
 app.options(/.*/, cors(corsOptions));
 app.use(express.json());
-  
+app.use(cookieParser());
 
 app.use('/transactions', transactions);
 app.use('/', userRoutes);

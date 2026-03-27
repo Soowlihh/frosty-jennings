@@ -6,7 +6,9 @@ const { loginLimiter, registerLimiter } = require('../rateLimiter');
 const jwt = require('jsonwebtoken');
 
 
-
+router.get('/register', (req, res) => {
+    res.send('Register page');
+  });
 router.post('/register', registerLimiter, catchAsync(async(req,res,next) => {
     const{ email, username, password } = req.body;
     const existingUser = await User.findOne({email});

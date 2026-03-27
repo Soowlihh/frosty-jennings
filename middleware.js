@@ -2,12 +2,12 @@
 const Transaction = require('./models/Transaction');
 const jwt = require('jsonwebtoken');
 // For EJS pages (redirects)
-module.exports.isLoggedInPage = (req, res, next) => {
+/*module.exports.isLoggedInPage = (req, res, next) => {
     if (!req.isAuthenticated || !req.isAuthenticated()) {
       return res.redirect("/login");
     }
     next();
-  };
+  };*/
   
   // For React/API (returns JSON)
   /*module.exports.isLoggedInAPI = (req, res, next) => {
