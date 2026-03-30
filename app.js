@@ -14,14 +14,14 @@ const { loginLimiter, registerLimiter, transactionLimiter } = require('./rateLim
 
 
 mongoose.connect(process.env.MONGO_URI)
-.then(() => console.log('Database Conneceted'))
+.then(() => console.log('Database Connected'))
 .catch((error) => console.log('Error', error))
 
 const corsOptions = {
   origin: process.env.CLIENT_URL ||"http://localhost:5173",
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", " Authorization"],
+  allowedHeaders: ["Content-Type", "Authorization"],
   };
 app.set("trust proxy", 1);
 app.use(helmet());

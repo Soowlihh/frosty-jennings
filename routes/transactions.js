@@ -5,7 +5,7 @@ const Transaction = require('../models/Transaction');
 const catchAsync = require('../utilities/catchAsync');
 const expressError = require('../utilities/expressError');
 const {transactionSchema} = require('../schema.js');
-const {isLoggedInAPI,isOwner} = require("../middleware");
+const {isLoggedInAPI,isOwner} = require("../authMiddleware");
 const { transactionLimiter} = require('../rateLimiter');
 
 

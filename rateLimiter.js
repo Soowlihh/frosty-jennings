@@ -18,7 +18,7 @@ const registerLimiter = rateLimit({
     handler: (req,res) => {
         res.status(429).json({
             ok:false,
-            message:"Too many login attempts try again later"
+            message:"Too many registration attempts, try again later"
         });
     }
 });
@@ -30,7 +30,7 @@ const transactionLimiter = rateLimit({
     handler: (req,res) => {
         res.status(429).json({
             ok:false,
-            message:"Too many login attempts try again later"
+            message:"Too many requests, try again later"
         });
     }
 });
