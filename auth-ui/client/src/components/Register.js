@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 const API = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
-export default function Register({ onSwitch }) {
+export default function Register({ onSwitch, onBack }) {
   const [form, setForm] = useState({ email: '', username: '', password: '' });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -37,6 +37,9 @@ export default function Register({ onSwitch }) {
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-200 w-full max-w-sm p-8">
+      <button onClick={onBack} className="text-sm text-gray-400 hover:text-gray-600 mb-4 flex items-center gap-1">
+        ← Back
+      </button>
       <h1 className="text-2xl font-semibold text-gray-900 mb-1">Create account</h1>
       <p className="text-gray-500 text-sm mb-6">Start tracking your expenses</p>
 
