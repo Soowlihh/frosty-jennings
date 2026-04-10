@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 const API = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
-export default function Login({ onSwitch, onBack }) {
+export default function Login({ onSwitch, onBack, onSuccess }) {
   const [form, setForm] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -25,7 +25,7 @@ export default function Login({ onSwitch, onBack }) {
         setError(data.message || 'Login failed');
       } else {
         localStorage.setItem('accessToken', data.accessToken);
-        window.location.href = '/dashboard';
+        onSuccess(data.accessToken);
       }
     } catch {
       setError('Something went wrong. Try again.');
