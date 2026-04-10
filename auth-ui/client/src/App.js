@@ -17,6 +17,18 @@ function App() {
     setPage('transactions');
   };
 
+  const handleLogout = async () => {
+    try {
+      await fetch(`${API}/logout`, { method: 'POST', credentials: 'include' });
+    } catch {
+      // best-effort
+    }
+    clearInterval(refreshTimer.current);
+    setAccessToken(null);
+    localStorage.removeItem('accessToken');
+    setPage('landing');
+  };
+
   useEffect(() => {
     if (!accessToken) return;
 
@@ -41,28 +53,28 @@ function App() {
     return () => clearInterval(refreshTimer.current);
   }, [accessToken]);
   
+  if (page === 'transactions') {
+    return <Transactions accessToken={accessToken} onLogout={handleLogout} />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       {page === 'landing' && (
         <Landing onLogin={() => setPage('login')} onRegister={() => setPage('register')} />
       )}
       {page === 'login' && (
-        <Login 
-          onSwitch={() => setPage('register')} 
+        <Login
+          onSwitch={() => setPage('register')}
           onBack={() => setPage('landing')}
           onSuccess={handleLoginSuccess}
         />
       )}
       {page === 'register' && (
-        <Register 
-          onSwitch={() => setPage('login')} 
+        <Register
+          onSwitch={() => setPage('login')}
           onBack={() => setPage('landing')}
-          onSuccess={() => setPage('login')} 
+          onSuccess={() => setPage('login')}
         />
-      )}
-  
-      {page === 'transactions' && (
-        <Transactions accessToken={accessToken} />
       )}
     </div>
   );
