@@ -33,8 +33,8 @@ router.post('/login', loginLimiter, catchAsync(async(req,res)=> {
     const user = await User.findByUsername(username);
     if(!user) return res.status(401).json({ ok: false, message: "Invalid credentials"});
 
-    const isValid = await user.authenticate(password);
-    if(!isValid) return res.status(401).json({ok: false, message: "Invalid credentials" });
+    const { user: authUser } = await user.authenticate(password);
+    if(!authUser) return res.status(401).json({ok: false, message: "Invalid credentials" });
 
     const accessToken = jwt.sign(
         {userId : user._id},
@@ -48,10 +48,11 @@ router.post('/login', loginLimiter, catchAsync(async(req,res)=> {
         {expiresIn: '7d'}
     );
 
+    const isProd = process.env.NODE_ENV === 'production';
     res.cookie('refreshToken' , refreshToken, {
         httpOnly: true,
-        secure: true,
-        sameSite: 'none',
+        secure: isProd,
+        sameSite: isProd ? 'none' : 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000
     });
     res.json({ok:true, accessToken});
