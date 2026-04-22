@@ -57,11 +57,12 @@ function App() {
     return <Transactions accessToken={accessToken} onLogout={handleLogout} />;
   }
 
+  if (page === 'landing') {
+    return <Landing onLogin={() => setPage('login')} onRegister={() => setPage('register')} />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      {page === 'landing' && (
-        <Landing onLogin={() => setPage('login')} onRegister={() => setPage('register')} />
-      )}
       {page === 'login' && (
         <Login
           onSwitch={() => setPage('register')}
