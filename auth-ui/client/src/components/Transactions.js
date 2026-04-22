@@ -4,11 +4,27 @@ const API = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 const TODAY = new Date().toISOString().split('T')[0];
 const EMPTY_FORM = { statements: '', amount: '', type: 'Expense', date: TODAY };
 
+const INPUT = "w-full bg-slate-800 border border-white/10 text-white placeholder-slate-500 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all";
+
+function StatCard({ icon, label, value, color }) {
+  return (
+    <div className="bg-slate-900 border border-white/10 rounded-2xl p-5">
+      <div className="flex items-center gap-2 mb-3">
+        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${color.bg}`}>
+          {icon}
+        </div>
+        <p className="text-slate-400 text-xs font-medium">{label}</p>
+      </div>
+      <p className={`text-2xl font-bold ${color.text}`}>{value}</p>
+    </div>
+  );
+}
+
 export default function Transactions({ accessToken, onLogout }) {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [modal, setModal] = useState(null); // null | { mode: 'add' } | { mode: 'edit', tx }
+  const [modal, setModal] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
@@ -35,21 +51,11 @@ export default function Transactions({ accessToken, onLogout }) {
 
   useEffect(() => { fetchTransactions(); }, [fetchTransactions]);
 
-  const openAdd = () => {
-    setForm(EMPTY_FORM);
-    setModal({ mode: 'add' });
-  };
-
+  const openAdd = () => { setForm(EMPTY_FORM); setModal({ mode: 'add' }); };
   const openEdit = (tx) => {
-    setForm({
-      statements: tx.statements,
-      amount: String(tx.amount),
-      type: tx.type,
-      date: new Date(tx.date).toISOString().split('T')[0],
-    });
+    setForm({ statements: tx.statements, amount: String(tx.amount), type: tx.type, date: new Date(tx.date).toISOString().split('T')[0] });
     setModal({ mode: 'edit', tx });
   };
-
   const closeModal = () => { setModal(null); setForm(EMPTY_FORM); };
 
   const handleSave = async (e) => {
@@ -58,22 +64,15 @@ export default function Transactions({ accessToken, onLogout }) {
     setError('');
     const body = { ...form, amount: parseFloat(form.amount) };
     try {
-      const url = modal.mode === 'add'
-        ? `${API}/transactions`
-        : `${API}/transactions/${modal.tx._id}/edit`;
+      const url = modal.mode === 'add' ? `${API}/transactions` : `${API}/transactions/${modal.tx._id}/edit`;
       const res = await fetch(url, {
         method: modal.mode === 'add' ? 'POST' : 'PUT',
         headers: authHeaders,
         credentials: 'include',
         body: JSON.stringify(body),
       });
-      if (res.ok) {
-        await fetchTransactions();
-        closeModal();
-      } else {
-        const data = await res.json();
-        setError(data.message || 'Save failed');
-      }
+      if (res.ok) { await fetchTransactions(); closeModal(); }
+      else { const data = await res.json(); setError(data.message || 'Save failed'); }
     } catch {
       setError('Could not reach server');
     } finally {
@@ -84,17 +83,9 @@ export default function Transactions({ accessToken, onLogout }) {
   const handleDelete = async (id) => {
     setError('');
     try {
-      const res = await fetch(`${API}/transactions/${id}`, {
-        method: 'DELETE',
-        headers: authHeaders,
-        credentials: 'include',
-      });
-      if (res.ok) {
-        setTransactions((prev) => prev.filter((t) => t._id !== id));
-      } else {
-        const data = await res.json();
-        setError(data.message || 'Delete failed');
-      }
+      const res = await fetch(`${API}/transactions/${id}`, { method: 'DELETE', headers: authHeaders, credentials: 'include' });
+      if (res.ok) setTransactions((prev) => prev.filter((t) => t._id !== id));
+      else { const data = await res.json(); setError(data.message || 'Delete failed'); }
     } catch {
       setError('Could not reach server');
     } finally {
@@ -102,103 +93,154 @@ export default function Transactions({ accessToken, onLogout }) {
     }
   };
 
-  const totalIncome = transactions.filter((t) => t.type === 'Income').reduce((s, t) => s + t.amount, 0);
+  const totalIncome   = transactions.filter((t) => t.type === 'Income').reduce((s, t) => s + t.amount, 0);
   const totalExpenses = transactions.filter((t) => t.type === 'Expense').reduce((s, t) => s + t.amount, 0);
-  const balance = totalIncome - totalExpenses;
+  const balance       = totalIncome - totalExpenses;
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-400 text-sm">Loading…</p>
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-slate-400 text-sm">Loading…</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
-        <span className="text-base font-bold text-gray-900 tracking-tight">ExpenseTracker</span>
+    <div className="min-h-screen bg-slate-950">
+
+      {/* ── Header ─────────────────────────────────────────────── */}
+      <header className="bg-slate-950/80 backdrop-blur-md border-b border-white/5 px-6 h-16 flex items-center justify-between sticky top-0 z-40">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
+            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <span className="text-white font-bold text-lg tracking-tight">SpendSmart</span>
+        </div>
         <button
           onClick={onLogout}
-          className="text-sm text-gray-400 hover:text-gray-900 transition-colors font-medium"
+          className="text-sm text-slate-400 hover:text-white transition-colors font-medium flex items-center gap-1.5"
         >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
           Logout
         </button>
       </header>
 
-      <main className="max-w-xl mx-auto px-4 py-8">
+      {/* ── Main ───────────────────────────────────────────────── */}
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
+
+        {/* Page title */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-white">Dashboard</h1>
+          <p className="text-slate-400 text-sm mt-1">Track and manage your spending</p>
+        </div>
+
         {error && (
-          <div className="mb-5 bg-red-50 border border-red-100 text-red-500 text-sm rounded-xl px-4 py-3">
+          <div className="mb-6 bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-xl px-4 py-3">
             {error}
           </div>
         )}
 
         {/* Summary cards */}
-        <div className="grid grid-cols-3 gap-3 mb-8">
-          <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-            <p className="text-xs text-gray-400 mb-1.5 font-medium">Balance</p>
-            <p className={`text-lg font-bold ${balance >= 0 ? 'text-gray-900' : 'text-red-500'}`}>
-              {balance < 0 ? '-' : ''}${Math.abs(balance).toFixed(2)}
-            </p>
-          </div>
-          <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-            <p className="text-xs text-gray-400 mb-1.5 font-medium">Income</p>
-            <p className="text-lg font-bold text-green-600">+${totalIncome.toFixed(2)}</p>
-          </div>
-          <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-            <p className="text-xs text-gray-400 mb-1.5 font-medium">Expenses</p>
-            <p className="text-lg font-bold text-red-500">-${totalExpenses.toFixed(2)}</p>
-          </div>
+        <div className="grid grid-cols-3 gap-4 mb-10">
+          <StatCard
+            label="Balance"
+            value={`${balance < 0 ? '-' : ''}$${Math.abs(balance).toFixed(2)}`}
+            color={{ bg: 'bg-indigo-500/15', text: balance >= 0 ? 'text-white' : 'text-red-400' }}
+            icon={
+              <svg className="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+              </svg>
+            }
+          />
+          <StatCard
+            label="Income"
+            value={`+$${totalIncome.toFixed(2)}`}
+            color={{ bg: 'bg-emerald-500/15', text: 'text-emerald-400' }}
+            icon={
+              <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M7 11l5-5m0 0l5 5m-5-5v12" />
+              </svg>
+            }
+          />
+          <StatCard
+            label="Expenses"
+            value={`-$${totalExpenses.toFixed(2)}`}
+            color={{ bg: 'bg-red-500/15', text: 'text-red-400' }}
+            icon={
+              <svg className="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 13l-5 5m0 0l-5-5m5 5V6" />
+              </svg>
+            }
+          />
         </div>
 
         {/* List header */}
-        <div className="flex items-center justify-between mb-3">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Transactions</p>
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Transactions</p>
           <button
             onClick={openAdd}
-            className="bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-xl hover:bg-gray-700 transition-colors"
+            className="bg-indigo-600 text-white text-sm font-semibold px-4 py-2 rounded-xl hover:bg-indigo-500 transition-colors flex items-center gap-1.5 shadow-lg shadow-indigo-500/20"
           >
-            + Add
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            Add
           </button>
         </div>
 
         {/* List */}
         {transactions.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-dashed border-gray-200 py-16 text-center">
-            <p className="text-gray-400 text-sm">No transactions yet.</p>
+          <div className="bg-slate-900 border border-dashed border-white/10 rounded-2xl py-20 text-center">
+            <div className="w-12 h-12 rounded-2xl bg-slate-800 flex items-center justify-center mx-auto mb-4">
+              <svg className="w-6 h-6 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
+              </svg>
+            </div>
+            <p className="text-slate-300 font-medium text-sm">No transactions yet</p>
+            <p className="text-slate-500 text-sm mt-1 mb-5">Add your first one to start tracking</p>
             <button
               onClick={openAdd}
-              className="mt-3 text-sm text-gray-900 font-medium underline underline-offset-2"
+              className="bg-indigo-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-indigo-500 transition-colors"
             >
-              Add your first one
+              Add transaction
             </button>
           </div>
         ) : (
-          <ul className="space-y-2">
+          <ul className="space-y-2.5">
             {transactions.map((t) => (
               <li
                 key={t._id}
-                className="bg-white border border-gray-100 rounded-2xl px-4 py-3.5 flex items-center justify-between shadow-sm"
+                className="bg-slate-900/60 border border-white/8 rounded-2xl px-5 py-4 flex items-center gap-4 hover:border-white/15 transition-colors"
               >
-                <div className="flex-1 min-w-0 mr-4">
-                  <p className="text-sm font-medium text-gray-800 truncate">{t.statements}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">
+                {/* Indicator dot */}
+                <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${t.type === 'Income' ? 'bg-emerald-400' : 'bg-red-400'}`}></div>
+
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-white truncate">{t.statements}</p>
+                  <p className="text-xs text-slate-500 mt-0.5">
                     {new Date(t.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                    {' · '}
+                    <span className={t.type === 'Income' ? 'text-emerald-500' : 'text-red-500'}>{t.type}</span>
                   </p>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span
-                    className={`text-sm font-semibold tabular-nums ${
-                      t.type === 'Income' ? 'text-green-600' : 'text-red-500'
-                    }`}
-                  >
+
+                {/* Amount + actions */}
+                <div className="flex items-center gap-4">
+                  <span className={`text-sm font-bold tabular-nums ${t.type === 'Income' ? 'text-emerald-400' : 'text-red-400'}`}>
                     {t.type === 'Income' ? '+' : '-'}${t.amount.toFixed(2)}
                   </span>
                   <button
                     onClick={() => openEdit(t)}
                     title="Edit"
-                    className="text-gray-300 hover:text-gray-600 transition-colors"
+                    className="text-slate-600 hover:text-slate-300 transition-colors"
                   >
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -208,7 +250,7 @@ export default function Transactions({ accessToken, onLogout }) {
                   <button
                     onClick={() => setDeleteId(t._id)}
                     title="Delete"
-                    className="text-gray-300 hover:text-red-500 transition-colors"
+                    className="text-slate-600 hover:text-red-400 transition-colors"
                   >
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="3 6 5 6 21 6"/>
@@ -224,28 +266,37 @@ export default function Transactions({ accessToken, onLogout }) {
         )}
       </main>
 
-      {/* Add / Edit Modal */}
+      {/* ── Add / Edit Modal ──────────────────────────────────── */}
       {modal && (
-        <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50 px-4 pb-4 sm:pb-0">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl">
-            <h2 className="text-base font-semibold text-gray-900 mb-5">
-              {modal.mode === 'add' ? 'New Transaction' : 'Edit Transaction'}
-            </h2>
+        <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-50 px-4 pb-4 sm:pb-0">
+          <div className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-md p-6 shadow-2xl shadow-black/60">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-base font-semibold text-white">
+                {modal.mode === 'add' ? 'New Transaction' : 'Edit Transaction'}
+              </h2>
+              <button onClick={closeModal} className="text-slate-500 hover:text-white transition-colors">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
             <form onSubmit={handleSave} className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Description</label>
+                <label className="block text-xs font-medium text-slate-400 mb-1.5">Description</label>
                 <input
                   required
                   autoFocus
                   value={form.statements}
                   onChange={(e) => setForm((f) => ({ ...f, statements: e.target.value }))}
                   placeholder="e.g. Grocery shopping"
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 placeholder-gray-300"
+                  className={INPUT}
                 />
               </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Amount ($)</label>
+                  <label className="block text-xs font-medium text-slate-400 mb-1.5">Amount ($)</label>
                   <input
                     required
                     type="number"
@@ -254,43 +305,58 @@ export default function Transactions({ accessToken, onLogout }) {
                     value={form.amount}
                     onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))}
                     placeholder="0.00"
-                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 placeholder-gray-300"
+                    className={INPUT}
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Type</label>
-                  <select
-                    value={form.type}
-                    onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
-                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
-                  >
-                    <option>Expense</option>
-                    <option>Income</option>
-                  </select>
+                  <label className="block text-xs font-medium text-slate-400 mb-1.5">Type</label>
+                  <div className="relative">
+                    <select
+                      value={form.type}
+                      onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
+                      className="w-full appearance-none bg-slate-800 border border-white/10 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 pr-8"
+                    >
+                      <option value="Expense" className="bg-slate-800">Expense</option>
+                      <option value="Income" className="bg-slate-800">Income</option>
+                    </select>
+                    <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                      <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
                 </div>
               </div>
+
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Date</label>
+                <label className="block text-xs font-medium text-slate-400 mb-1.5">Date</label>
                 <input
                   required
                   type="date"
                   value={form.date}
                   onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                  className={`${INPUT} [color-scheme:dark]`}
                 />
               </div>
+
+              {error && (
+                <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-xl px-4 py-3">
+                  {error}
+                </div>
+              )}
+
               <div className="flex gap-3 pt-1">
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-xl hover:bg-gray-50 transition-colors"
+                  className="flex-1 bg-white/5 border border-white/10 text-slate-300 text-sm font-medium py-2.5 rounded-xl hover:bg-white/10 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 bg-gray-900 text-white text-sm font-medium py-2.5 rounded-xl hover:bg-gray-700 transition-colors disabled:opacity-50"
+                  className="flex-1 bg-indigo-600 text-white text-sm font-semibold py-2.5 rounded-xl hover:bg-indigo-500 transition-colors disabled:opacity-50"
                 >
                   {saving ? 'Saving…' : 'Save'}
                 </button>
@@ -300,22 +366,27 @@ export default function Transactions({ accessToken, onLogout }) {
         </div>
       )}
 
-      {/* Delete confirm */}
+      {/* ── Delete confirm ───────────────────────────────────── */}
       {deleteId && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl">
-            <h2 className="text-base font-semibold text-gray-900 mb-1.5">Delete transaction?</h2>
-            <p className="text-sm text-gray-400 mb-6">This can't be undone.</p>
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
+          <div className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-sm p-6 shadow-2xl shadow-black/60">
+            <div className="w-11 h-11 rounded-2xl bg-red-500/15 flex items-center justify-center mb-4">
+              <svg className="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </div>
+            <h2 className="text-base font-semibold text-white mb-1.5">Delete transaction?</h2>
+            <p className="text-sm text-slate-400 mb-6">This action can't be undone.</p>
             <div className="flex gap-3">
               <button
                 onClick={() => setDeleteId(null)}
-                className="flex-1 border border-gray-200 text-gray-600 text-sm font-medium py-2.5 rounded-xl hover:bg-gray-50 transition-colors"
+                className="flex-1 bg-white/5 border border-white/10 text-slate-300 text-sm font-medium py-2.5 rounded-xl hover:bg-white/10 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={() => handleDelete(deleteId)}
-                className="flex-1 bg-red-500 text-white text-sm font-medium py-2.5 rounded-xl hover:bg-red-600 transition-colors"
+                className="flex-1 bg-red-500 text-white text-sm font-semibold py-2.5 rounded-xl hover:bg-red-600 transition-colors"
               >
                 Delete
               </button>
@@ -323,6 +394,7 @@ export default function Transactions({ accessToken, onLogout }) {
           </div>
         </div>
       )}
+
     </div>
   );
 }

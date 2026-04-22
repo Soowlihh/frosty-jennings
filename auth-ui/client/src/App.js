@@ -61,24 +61,27 @@ function App() {
     return <Landing onLogin={() => setPage('login')} onRegister={() => setPage('register')} />;
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      {page === 'login' && (
-        <Login
-          onSwitch={() => setPage('register')}
-          onBack={() => setPage('landing')}
-          onSuccess={handleLoginSuccess}
-        />
-      )}
-      {page === 'register' && (
-        <Register
-          onSwitch={() => setPage('login')}
-          onBack={() => setPage('landing')}
-          onSuccess={() => setPage('login')}
-        />
-      )}
-    </div>
-  );
+  if (page === 'login') {
+    return (
+      <Login
+        onSwitch={() => setPage('register')}
+        onBack={() => setPage('landing')}
+        onSuccess={handleLoginSuccess}
+      />
+    );
+  }
+
+  if (page === 'register') {
+    return (
+      <Register
+        onSwitch={() => setPage('login')}
+        onBack={() => setPage('landing')}
+        onSuccess={() => setPage('login')}
+      />
+    );
+  }
+
+  return null;
 }
 
 export default App;
