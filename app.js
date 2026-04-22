@@ -17,12 +17,22 @@ mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log('Database Connected'))
 .catch((error) => console.log('Error', error))
 
+const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:3001')
+  .split(',')
+  .map((o) => o.trim());
+
 const corsOptions = {
-  origin: process.env.CLIENT_URL ||"http://localhost:5173",
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS: origin ${origin} not allowed`));
+    }
+  },
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  };
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
 app.set("trust proxy", 1);
 app.use(helmet());
 app.use(express.urlencoded({ extended: true }));
